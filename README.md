@@ -234,3 +234,77 @@ Create Thymeleaf templates for the pages.
 </body>
 </html>
 ```
+
+# SpringMVC Dependency Scanning
+
+Performing dependency scanning in a Spring MVC project involves checking your project's dependencies for known vulnerabilities. 
+
+### Using OWASP Dependency-Check:
+
+1. **Add Dependency-Check Plugin:**
+
+   Add the `dependency-check-maven` plugin to your Maven project. Open your `pom.xml` file and include the plugin configuration inside the `<build>` and `<plugins>` sections:
+
+   ```xml
+   <build>
+       <plugins>
+           <!-- ... other plugins ... -->
+           <plugin>
+               <groupId>org.owasp</groupId>
+               <artifactId>dependency-check-maven</artifactId>
+               <version>6.4.0</version>
+               <executions>
+                   <execution>
+                       <goals>
+                           <goal>check</goal>
+                       </goals>
+                   </execution>
+               </executions>
+           </plugin>
+       </plugins>
+   </build>
+   ```
+
+2. **Run Dependency-Check:**
+
+   Open a terminal in the root directory of your project and run the following Maven command:
+
+   ```bash
+   mvn dependency-check:check
+   ```
+
+   This command will analyze your project's dependencies and generate a report on any known vulnerabilities. The report will be available in the `target/dependency-check-report.html` file.
+
+3. **Review the Report:**
+
+   Open the generated HTML report in a web browser to review the findings. The report will provide information about the dependencies, their versions, and any known vulnerabilities.
+
+### Using OWASP Dependency-Check with Gradle:
+
+1. **Add Dependency-Check Plugin:**
+
+   Add the `dependency-check-gradle` plugin to your Gradle project. Open your `build.gradle` file and include the plugin configuration:
+
+   ```groovy
+   plugins {
+       id 'org.owasp.dependencycheck' version '6.4.0'
+   }
+
+   dependencyCheck {
+       failBuildOnCVSS 5
+   }
+   ```
+
+2. **Run Dependency-Check:**
+
+   Open a terminal in the root directory of your project and run the following Gradle command:
+
+   ```bash
+   ./gradlew dependencyCheckAnalyze
+   ```
+
+   This command will analyze your project's dependencies and generate a report on any known vulnerabilities. The report will be available in the `build/reports/dependency-check-report.html` file.
+
+3. **Review the Report:**
+
+   Open the generated HTML report in a web browser to review the findings. The report will provide information about the dependencies, their versions, and any known vulnerabilities.
