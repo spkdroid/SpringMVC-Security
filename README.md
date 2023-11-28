@@ -279,7 +279,7 @@ Performing dependency scanning in a Spring MVC project involves checking your pr
 
    Open the generated HTML report in a web browser to review the findings. The report will provide information about the dependencies, their versions, and any known vulnerabilities.
 
-### Using OWASP Dependency-Check with Gradle:
+### Using OWASP Dependency-Check with Gradle
 
 1. **Add Dependency-Check Plugin:**
 
@@ -308,3 +308,100 @@ Performing dependency scanning in a Spring MVC project involves checking your pr
 3. **Review the Report:**
 
    Open the generated HTML report in a web browser to review the findings. The report will provide information about the dependencies, their versions, and any known vulnerabilities.
+
+### HTTPS with SpringMVC
+   
+Enabling HTTPS in a Spring MVC application involves configuring your web server to handle secure connections and updating your Spring MVC application to use HTTPS.
+
+### 1. Generate a Keystore:
+
+You need to generate a keystore file that will store your SSL certificate. You can use the Java `keytool` utility for this purpose. Open a terminal and run the following command:
+
+```bash
+keytool -genkeypair -alias tomcat -keyalg RSA -keysize 2048 -keystore keystore.jks -validity 3650
+```
+
+Follow the prompts to provide the required information.
+
+### 2. Configure Spring Boot to use HTTPS:
+
+If you're using Spring Boot, you can configure HTTPS in the `application.properties` or `application.yml` file:
+
+```properties
+server.port=8443
+server.ssl.key-store=classpath:keystore.jks
+server.ssl.key-store-password=your_keystore_password
+server.ssl.key-password=your_key_password
+```
+
+Replace `your_keystore_password` and `your_key_password` with the passwords you set during the keystore generation.
+
+### 3. Redirect HTTP to HTTPS (Optional):
+
+To enforce the use of HTTPS, you can configure your Spring MVC application to redirect HTTP requests to HTTPS. You can do this in your `WebMvcConfigurer` or by using a `Filter`.
+
+#### Using `WebMvcConfigurer`:
+
+```java
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+@Configuration
+public class WebConfig implements WebMvcConfigurer {
+
+    @Override
+    public void addViewControllers(ViewControllerRegistry registry) {
+        registry.addViewController("/").setViewName("forward:/home");
+        registry.addViewController("/home").setViewName("home");
+    }
+
+    @Bean
+    public WebMvcConfigurer forwardToIndex() {
+        return new WebMvcConfigurer() {
+            @Override
+            public void addViewControllers(ViewControllerRegistry registry) {
+                registry.addViewController("/").setViewName("forward:/home");
+            }
+        };
+    }
+}
+```
+
+#### Using a `Filter`:
+
+```java
+import org.springframework.web.filter.OncePerRequestFilter;
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebFilter;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
+@WebFilter
+public class HttpsRedirectFilter extends OncePerRequestFilter {
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
+        String requestUrl = request.getRequestURL().toString();
+
+        if (requestUrl.startsWith("http://")) {
+            String redirectUrl = requestUrl.replace("http://", "https://");
+            response.sendRedirect(redirectUrl);
+        } else {
+            filterChain.doFilter(request, response);
+        }
+    }
+}
+```
+
+### 4. Update Your Controllers and Views:
+
+Update your controllers and views to use the HTTPS URLs. For example, if your login form submits to `/login`, make sure it submits to `https://yourdomain.com/login`.
+
+### 5. Test Your Configuration:
+
+Restart your Spring Boot application, and access it using `https://localhost:8443` (assuming you used port 8443 in your configuration). Ensure that everything works as expected over HTTPS.
